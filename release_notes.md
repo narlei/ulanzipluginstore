@@ -1,16 +1,20 @@
-## v1.5.0 — 2026-07-23
-
-### Changed
-
-- **Publishing a plugin no longer requires a fork.** The *Send plugin* tab used to hand you a GitHub "new file" link and rely on GitHub forking the store repository for you. When that did not happen, you landed on *"You need to fork this repository to propose changes"*, the request came back `422`, and the app reported a generic *"An unexpected error occurred"* with no way forward. The button now opens a pre-filled submission issue instead: paste nothing, fork nothing, touch no git. A bot validates your repository and opens the registry Pull Request on your behalf, crediting you as co-author of the commit.
-- **The validation you already saw now runs twice, in the right places.** The same checks the store runs on registry Pull Requests — repository reachable, latest release carrying a `*.ulanziPlugin.zip` asset, `manifest.json` present and well-formed, `store.json` valid with every referenced image actually existing — run on the issue before any Pull Request is created. If something is off, the bot comments exactly what to fix; edit the issue and it revalidates immediately. Submitting a plugin that is already in the registry is recognized and closed with an explanation rather than opening a duplicate.
+## v1.6.0 — 2026-09-03
 
 ### Added
 
-- **A "Publish a plugin" issue template**, reachable from the app, from the website's *Publish* section, or directly from the repository's issue chooser. The app and the site still validate your repository in advance and fill the form in for you, so the flow you already knew is unchanged up to the final click.
+- **A "What's new" page**, grouped by author, at `/updates/`. Browse any date window (`?from=&to=`) to see new plugins and recent releases pulled live from the catalog; a shared link keeps showing what it showed the day it was posted. Each window also gets its own 1200×630 share card built from the icons of what actually landed, instead of the site's generic cover.
+- **Google Analytics 4** on the marketing site.
+- **The desktop app is now a universal macOS binary.** Releases ship a single `.dmg`/`.zip` that runs natively on both Apple Silicon and Intel Macs, supporting macOS 12 (Monterey) and up — Intel users were previously left out entirely, since the CI runner only ever produced an Apple Silicon build.
+
+### Fixed
+
+- **The updates share card no longer shows stale numbers right after a deploy.** A crawler hitting the page seconds after a catalog update could pin a "0 new plugins" card built from the old catalog for hours; the page now forces one cache-bypassing refresh when that happens.
+- **Registry PR validation no longer silently skips checks.** `/revalidate` used to come back with an empty file list on some PRs (a missing git merge-base) and validation was skipped without saying so; it now lists the PR's files through the GitHub API instead.
+- **The PR security scan checks the repo that was actually submitted**, not the whole registry — it now also blocks the merge when it finds leaked secrets or a CRITICAL vulnerability.
 
 ### Internal
 
-- Registry Pull Request validation accepts `/revalidate` from a maintainer comment and a manual run with a Pull Request number. Pull Requests opened with the Actions token do not trigger workflows, so bot-authored submissions carry their validation report in the Pull Request body and can be re-checked on demand.
-- Issue bodies are untrusted input and are never interpolated into a shell command: a parser reads the body from the environment and emits only a strict `owner/repo` slug, which is all the rest of the workflow consumes.
-- The manual fork-and-Pull-Request path stays documented for anyone who prefers it.
+- Registry PR validation and the Trivy security scan now run from the trusted base branch, scoped to only the entries a PR touches, instead of checking out the PR branch wholesale.
+- `security-scan.mjs` accepts an `ONLY_FILES` allow-list and reports secret/critical counts as job outputs for the PR comment.
+- CI workflow text translated to English.
+- The macOS release build: ad-hoc code signing now runs only on the final universal app bundle (signing each architecture slice separately broke the merge step), and `@resvg/resvg-js` — used only by the catalog's build scripts — moved out of the packaged app's dependency tree.

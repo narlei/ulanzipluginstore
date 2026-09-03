@@ -9,6 +9,16 @@ const path = require('node:path');
 module.exports = async function afterPack(context) {
   if (context.electronPlatformName !== 'darwin') return;
 
+  // For a universal build, electron-builder packs the x64 and arm64 slices
+  // into "*-temp" directories, calling afterPack on each, then merges them
+  // with @electron/universal and calls afterPack again on the merged app.
+  // The merge step requires the two intermediate app bundles to be
+  // byte-identical outside their binaries, but signing each one separately
+  // gives each a different CodeSignature/CodeResources file and breaks that.
+  // So skip the intermediates and only sign the final merged (or single-arch)
+  // app.
+  if (context.appOutDir.includes('-temp')) return;
+
   const appPath = path.join(
     context.appOutDir,
     `${context.packager.appInfo.productFilename}.app`,

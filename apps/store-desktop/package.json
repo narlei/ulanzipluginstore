@@ -1,7 +1,7 @@
 {
   "name": "@ulanzideck/store-desktop",
   "productName": "Ulanzi Community Store",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "description": "The open-source community store for Ulanzi Deck and Dial plugins",
   "private": true,
   "type": "module",
@@ -65,9 +65,20 @@
     "afterPack": "scripts/afterPack.cjs",
     "mac": {
       "target": [
-        "dmg",
-        "zip"
+        {
+          "target": "dmg",
+          "arch": [
+            "universal"
+          ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "universal"
+          ]
+        }
       ],
+      "minimumSystemVersion": "12.0",
       "category": "public.app-category.utilities",
       "identity": null,
       "hardenedRuntime": false,
